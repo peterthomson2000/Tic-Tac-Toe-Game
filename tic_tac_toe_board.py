@@ -29,6 +29,8 @@ class TicTacToeBoard:
             if p[a] == p[b] == p[c] and p[a] != " ":
                 self.state = "won"
                 return p[a]
+        if self.check_draw():
+            return "Draw"
         return "None"
     def check_draw(self) -> bool:
         if " " not in self.positions:
