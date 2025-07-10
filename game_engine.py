@@ -1,4 +1,5 @@
 from tic_tac_toe_board import TicTacToeBoard
+import time
 
 def get_valid_move(player: str, board: list[str]) -> int:
     while True:
@@ -16,41 +17,50 @@ def get_valid_move(player: str, board: list[str]) -> int:
         return move
 
 def main():
-    print("Welcome to Tic-Tac-Toe!")
+    print("Welcome to Tic-Tac-Toe Multiplayer!")
 
-    # Load board from Redis or create new one
+    # Ask for player identity
+    player = input("Are you Player X or O? ").strip().upper()
+    if player not in ["X", "O"]:
+        print("Invalid player. Must be X or O.")
+        return
+
+    # Load shared board
     board = TicTacToeBoard.load_from_redis()
 
-    # Print current state
-    print("Current board:")
-    board.print_board()
-
-    # If the last game ended, offer to reset
+    # Optionally reset game if it's over
     if board.state in ["won", "draw"]:
-        choice = input("Previous game finished. Do you want to reset the board? (y/n): ").lower()
-        if choice == 'y':
+        choice = input("Previous game is over. Reset board? (y/n): ").lower()
+        if choice == "y":
             board.reset()
             print("Board reset.")
-            board.print_board()
 
+    # Game loop
     while board.state == "is_playing":
-        move = get_valid_move(board.player, board.positions)
-        board.make_move(move)
-        result = board.check_winner()
-
-        board.save_to_redis()  # Save after each move
-
+        board = TicTacToeBoard.load_from_redis()
         board.print_board()
 
-        if result in ["X", "O"]:
-            print(f"Player {result} wins!")
-            break
-        elif result == "Draw":
-            print("It's a draw!")
-            break
+        if board.is_my_turn(player):
+            print(f"It's your turn, Player {player}.")
+            move = get_valid_move(player, board.positions)
+            if board.make_move(move):
+                result = board.check_winner()
+                board.save_to_redis()
 
-        board.switch_turn()
-        board.save_to_redis()  # Save again after turn switch
+                if result in ["X", "O"]:
+                    board.print_board()
+                    print(f"Player {result} wins!")
+                    break
+                elif result == "Draw":
+                    board.print_board()
+                    print("It's a draw!")
+                    break
+
+                board.switch_turn()
+                board.save_to_redis()
+        else:
+            print(f"Waiting for Player {board.player}...")
+            time.sleep(1)
 
 if __name__ == "__main__":
     main()
