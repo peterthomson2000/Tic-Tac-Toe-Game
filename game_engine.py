@@ -1,33 +1,40 @@
 from tic_tac_toe_board import TicTacToeBoard
 
+def get_valid_move(player: str, board: list[str]) -> int:
+    while True:
+        move = input(f"Player {player}, choose a position (0-8): ")
+        if not move.isdigit():
+            print("> Invalid input. Please enter a number.")
+            continue
+        move = int(move)
+        if move < 0 or move > 8:
+            print("> Invalid range. Choose between 0 and 8.")
+            continue
+        if board[move] != " ":
+            print("> That spot is taken. Choose another.")
+            continue
+        return move
+
 def main():
-    board = TicTacToeBoard()
     print("Welcome to Tic-Tac-Toe!")
-    
+    board = TicTacToeBoard()
+
     while board.state == "is_playing":
         board.print_board()
-        print(f"Player {board.player}, choose a position (0-8):")
+        move = get_valid_move(board.player, board.positions)
+        board.make_move(move)
 
-        try:
-            pos = int(input("> "))
-            if pos < 0 or pos > 8:
-                print("Invalid position. Choose a number from 0 to 8.")
-                continue
+        result = board.check_winner()
+        if result == "X" or result == "O":
+            board.print_board()
+            print(f"Player {result} wins!")
+            break
+        elif result == "Draw":
+            board.print_board()
+            print("It's a draw!")
+            break
 
-            if not board.make_move(pos):
-                print("That position is already taken. Try again.")
-        except ValueError:
-            print("Invalid input. Please enter a number.")
+        board.switch_turn()
 
-    # Final result
-    board.print_board()
-    if board.state == "tie":
-        print("It's a tie!")
-    else:
-        print(f"Game over. {board.state.replace('_', ' ').capitalize()}!")
-
-def main():
-    print("Welcome to Tic-Tac-Toe!")
-    board = TicTacToeBoard()
-    board.print_board()
-    main() #No need to call main() if this file is imported 
+if __name__ == "__main__":
+    main()
