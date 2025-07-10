@@ -12,7 +12,7 @@ class TicTacToeBoard:
     def switch_turn(self):
         self.player = "O" if self.player == "X" else "X"
 
-    def make_move(self, position: int):
+    def make_move(self, position: int) -> bool:
         if self.positions[position] == " ":
             self.positions[position] = self.player
             return True
@@ -29,17 +29,46 @@ class TicTacToeBoard:
             if p[a] == p[b] == p[c] and p[a] != " ":
                 self.state = "won"
                 return p[a]
-        if " " not in p:
-            self.state = "draw"
-            return "Draw"
         return "None"
+    def check_draw(self) -> bool:
+        if " " not in self.positions:
+            self.state = "draw"
+            return True
+        return False
 
-    def print_board(self):  
+    def print_board(self):
         p = self.positions
         print()
-        print(" " + p[0] + " | " + p[1] + " | " + p[2])
+        print(f" {p[0]} | {p[1]} | {p[2]} ")
         print("---|---|---")
-        print(" " + p[3] + " | " + p[4] + " | " + p[5])
+        print(f" {p[3]} | {p[4]} | {p[5]} ")
         print("---|---|---")
-        print(" " + p[6] + " | " + p[7] + " | " + p[8])
+        print(f" {p[6]} | {p[7]} | {p[8]} ")
         print()
+        
+        # ========================== Redis Setup Instructions ==========================
+# 1. Import and configure the Redis client.
+#    - Use the Redis host: ai.thewcl.com
+#    - Port: 6379
+#    - Password: atmega328
+#    - Use your student number (0–13) as part of your key
+
+# 2. Define a Redis key constant, for example:
+#    REDIS_KEY = "tic_tac_toe:game_state"
+
+# 3. Add a method: serialize(self)
+#    - This should convert the current board object into a JSON string.
+
+# 4. Add a method: save_to_redis(self)
+#    - Converts the board to a dictionary using json.loads(self.serialize())
+#    - Calls r.json().set(REDIS_KEY, path='.', obj=data)
+
+# 5. Add a @classmethod: load_from_redis(cls)
+#    - Loads the board data from Redis using r.json().get(REDIS_KEY)
+#    - Returns a new TicTacToeBoard instance using cls(**data)
+
+# 6. Add a method: reset(self)
+#    - Resets the board: positions = [""] * 9, player = "X", state = "is_playing"
+#    - Saves the reset board to Redis using save_to_redis()
+
+# ==============================================================================
