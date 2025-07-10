@@ -17,24 +17,40 @@ def get_valid_move(player: str, board: list[str]) -> int:
 
 def main():
     print("Welcome to Tic-Tac-Toe!")
-    board = TicTacToeBoard()
+
+    # Load board from Redis or create new one
+    board = TicTacToeBoard.load_from_redis()
+
+    # Print current state
+    print("Current board:")
+    board.print_board()
+
+    # If the last game ended, offer to reset
+    if board.state in ["won", "draw"]:
+        choice = input("Previous game finished. Do you want to reset the board? (y/n): ").lower()
+        if choice == 'y':
+            board.reset()
+            print("Board reset.")
+            board.print_board()
 
     while board.state == "is_playing":
-        board.print_board()
         move = get_valid_move(board.player, board.positions)
         board.make_move(move)
-
         result = board.check_winner()
-        if result == "X" or result == "O":
-            board.print_board()
+
+        board.save_to_redis()  # Save after each move
+
+        board.print_board()
+
+        if result in ["X", "O"]:
             print(f"Player {result} wins!")
             break
         elif result == "Draw":
-            board.print_board()
             print("It's a draw!")
             break
 
         board.switch_turn()
+        board.save_to_redis()  # Save again after turn switch
 
 if __name__ == "__main__":
     main()

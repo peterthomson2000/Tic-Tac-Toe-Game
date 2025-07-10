@@ -1,4 +1,21 @@
 from dataclasses import dataclass, field
+import redis
+import json
+
+# Redis configuration
+REDIS_HOST = "ai.thewcl.com"
+REDIS_PORT = 6379
+REDIS_PASSWORD = "atmega328"
+STUDENT_NUMBER =   11 # Replace with your student number (0–13)
+REDIS_KEY = f"tic_tac_toe:game_state:{STUDENT_NUMBER}"
+
+# Redis client setup
+r = redis.Redis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    password=REDIS_PASSWORD,
+    decode_responses=True
+)
 
 @dataclass
 class TicTacToeBoard:
@@ -32,6 +49,7 @@ class TicTacToeBoard:
         if self.check_draw():
             return "Draw"
         return "None"
+
     def check_draw(self) -> bool:
         if " " not in self.positions:
             self.state = "draw"
@@ -47,6 +65,35 @@ class TicTacToeBoard:
         print("---|---|---")
         print(f" {p[6]} | {p[7]} | {p[8]} ")
         print()
+
+    # Redis: Serialize board to JSON string
+    def serialize(self) -> str:
+        return json.dumps({
+            "state": self.state,
+            "player": self.player,
+            "positions": self.positions
+        })
+
+    # Redis: Save board state to Redis as JSON
+    def save_to_redis(self):
+        data = json.loads(self.serialize())
+        r.json().set(REDIS_KEY, path='.', obj=data)
+
+    # Redis: Load board state from Redis and return a TicTacToeBoard instance
+    @classmethod
+    def load_from_redis(cls):
+        data = r.json().get(REDIS_KEY)
+        if data:
+            return cls(**data)
+        else:
+            return cls()  # Return a new board if nothing is in Redis
+
+    # Reset board state and save to Redis
+    def reset(self):
+        self.positions = [" " for _ in range(9)]
+        self.player = "X"
+        self.state = "is_playing"
+        self.save_to_redis()
         
         # ========================== Redis Setup Instructions ==========================
 # 1. Import and configure the Redis client.
