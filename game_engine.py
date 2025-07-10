@@ -26,5 +26,8 @@ def main():
     else:
         print(f"Game over. {board.state.replace('_', ' ').capitalize()}!")
 
-if __name__ == "__main__":
-    main() #No need to call main() if this file is imported
+def main():
+    print("Welcome to Tic-Tac-Toe!")
+    board = TicTacToeBoard()
+    board.print_board()
+    main() #No need to call main() if this file is imported 

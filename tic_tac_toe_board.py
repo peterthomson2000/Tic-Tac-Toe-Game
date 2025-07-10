@@ -4,49 +4,42 @@ from dataclasses import dataclass, field
 class TicTacToeBoard:
     state: str = "is_playing"
     player: str = "X"
-    positions: list[str] = field(default_factory=lambda: [""] * 9)
+    positions: list[str] = field(default_factory=lambda: [" " for _ in range(9)])
 
     def is_my_turn(self, i_am: str) -> bool:
-        return i_am.lower() == self.player.lower()
+        return i_am.upper() == self.player
 
-    def make_move(self, index: int) -> bool:
-        if self.positions[index] == "" and self.state == "is_playing":
-            self.positions[index] = self.player
-            self.check_winner()
-            if self.state == "is_playing":
-                self.switch_player()
+    def switch_turn(self):
+        self.player = "O" if self.player == "X" else "X"
+
+    def make_move(self, position: int):
+        if self.positions[position] == " ":
+            self.positions[position] = self.player
             return True
         return False
 
-    def switch_player(self):
-        self.player = "O" if self.player == "X" else "X"
-
-    def check_winner(self):
+    def check_winner(self) -> str:
+        p = self.positions
         wins = [
-            (0, 1, 2), (3, 4, 5), (6, 7, 8),  # rows
-            (0, 3, 6), (1, 4, 7), (2, 5, 8),  # columns
-            (0, 4, 8), (2, 4, 6)              # diagonals
+            (0, 1, 2), (3, 4, 5), (6, 7, 8),
+            (0, 3, 6), (1, 4, 7), (2, 5, 8),
+            (0, 4, 8), (2, 4, 6)
         ]
         for a, b, c in wins:
-            if self.positions[a] and self.positions[a] == self.positions[b] == self.positions[c]:
-                self.state = f"{self.positions[a]}_won"
-                return
-        if all(pos != "" for pos in self.positions):
-            self.state = "tie"
+            if p[a] == p[b] == p[c] and p[a] != " ":
+                self.state = "won"
+                return p[a]
+        if " " not in p:
+            self.state = "draw"
+            return "Draw"
+        return "None"
 
-    def print_board(self):
-        # The board has 9 positions: 0 to 8
-        # We'll print 3 rows: top (0–2), middle (3–5), bottom (6–8)
-
-        for start_index in [0, 3, 6]:  # Start of each row
-            # Get each of the 3 positions in the current row
-            first = self.positions[start_index] or " "
-        second = self.positions[start_index + 1] or " "
-        third = self.positions[start_index + 2] or " "
-
-        # Print the row in the format: X |   | O
-        print(f" {first} | {second} | {third} ")
-
-        # Print the row divider if it's not the last row
-        if start_index != 6:
-            print("---+---+---")
+    def print_board(self):  
+        p = self.positions
+        print()
+        print(" " + p[0] + " | " + p[1] + " | " + p[2])
+        print("---|---|---")
+        print(" " + p[3] + " | " + p[4] + " | " + p[5])
+        print("---|---|---")
+        print(" " + p[6] + " | " + p[7] + " | " + p[8])
+        print()
